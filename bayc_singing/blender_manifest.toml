@@ -1,0 +1,24 @@
+schema_version = "1.0.0"
+
+id = "bayc_singing"
+version = "1.0.0"
+name = "BAYC Singing"
+tagline = "Make your 3D ape sing and fart any song, with ragdoll jiggle"
+maintainer = "AbyssShadows"
+type = "add-on"
+website = "https://github.com/AbyssShadows/bayc-singing"
+tags = ["Animation", "Rigging", "Render"]
+
+blender_version_min = "5.2.0"
+
+license = ["SPDX:MIT"]
+copyright = [
+  "2026 AbyssShadows",
+  "2026 Jameson Hodge (chimera-vocal-synth, bundled as bin/)",
+]
+
+[permissions]
+files = "Read songs and MIDI files, write audio, scenes and videos"
+
+[build]
+paths_exclude_pattern = ["__pycache__/", "*.pyc", ".*"]

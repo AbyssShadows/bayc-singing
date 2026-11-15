@@ -1,0 +1,64 @@
+{
+  "id": "mixamo_arkit",
+  "name": "Mixamo body + ARKit/Oculus face (experimental)",
+  "status": "experimental template: not tested",
+  "about": "For characters rigged with Mixamo (bones named mixamorig:Hips, mixamorig:Spine, ...) whose face has ARKit blendshapes (jawOpen, mouthFunnel, ...) and Oculus visemes (viseme_FF, ...). The build strips the mixamorig: prefix and renames the visemes to the names the engine uses, in its own copy of your file. Extra jiggle bones are off (their positions depend on the character); set extra_bones to add them.",
+  "match": {
+    "mesh_name_contains": [],
+    "bones": [
+      "mixamorig:Hips",
+      "mixamorig:Head"
+    ]
+  },
+  "bone_prefix": "mixamorig:",
+  "rename_bones": {},
+  "rename_shape_keys": {
+    "viseme_FF": "fff_M",
+    "viseme_TH": "tth_M",
+    "viseme_RR": "rrr_M",
+    "viseme_SS": "sss_M",
+    "viseme_CH": "ssh_M",
+    "viseme_DD": "lntd_M",
+    "viseme_kk": "gk_M",
+    "viseme_E": "eh_M"
+  },
+  "meshes": {
+    "head": [
+      "Head",
+      "Face",
+      "Wolf3D_Head",
+      "Body"
+    ],
+    "mouth": [
+      "Teeth",
+      "Mouth",
+      "Wolf3D_Teeth"
+    ],
+    "hat": [
+      "Hat",
+      "Cap",
+      "Headwear"
+    ],
+    "skin": [
+      "Body",
+      "Skin",
+      "Wolf3D_Body"
+    ],
+    "clothes": [
+      "Outfit",
+      "Clothes",
+      "Top",
+      "Wolf3D_Outfit"
+    ],
+    "eyes": [
+      "Eye"
+    ],
+    "backdrop": [
+      "Background",
+      "Backdrop"
+    ]
+  },
+  "extra_bones": {},
+  "ear_weights": null,
+  "xray": {}
+}

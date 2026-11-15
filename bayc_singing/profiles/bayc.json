@@ -1,0 +1,26 @@
+{
+  "id": "bayc",
+  "name": "Bored Ape (BAYC), Advanced Skeleton rig",
+  "status": "tested",
+  "about": "The 3D BAYC apes rigged with Advanced Skeleton and baked to shape keys. Meshes are named BAYC_<Trait>_<Variant>_GEO, e.g. BAYC_Head_Gray_GEO, BAYC_Mouth_Bored_GEO, BAYC_Hat_IrishBoho_GEO.",
+  "match": {"mesh_name_contains": ["BAYC_"], "bones": ["Hips", "Head", "LeftUpLeg", "RightUpLeg"]},
+  "bone_prefix": "",
+  "rename_bones": {},
+  "rename_shape_keys": {},
+  "meshes": {
+    "head": ["_Head_"],
+    "mouth": ["_Mouth_"],
+    "hat": ["_Hat_"],
+    "skin": ["_Fur_"],
+    "clothes": ["_Clothes_"],
+    "eyes": ["_Eyes_"],
+    "backdrop": ["Background"]
+  },
+  "extra_bones": {
+    "Hat_Jiggle": {"head": [0.0, 191.5, 3.0], "tail": [0.0, 201.5, 3.0]},
+    "Ear_L": {"head": [10.4, 187.2, 2.0], "tail": [18.2, 187.7, 2.4]},
+    "Ear_R": {"head": [-10.4, 187.2, 2.0], "tail": [-18.2, 187.7, 2.4]}
+  },
+  "ear_weights": {"x": [9.8, 12.6], "y_in": [177.5, 180.5], "y_out": [193.5, 195.5]},
+  "xray": {}
+}

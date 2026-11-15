@@ -1,0 +1,55 @@
+diff --git a/crates/chimera-cli/src/main.rs b/crates/chimera-cli/src/main.rs
+index e630990..6ebba47 100644
+--- a/crates/chimera-cli/src/main.rs
++++ b/crates/chimera-cli/src/main.rs
+@@ -3,6 +3,7 @@
+ //! `calibrate-*.ts`) with their arguments, defaults and printed summaries. Spectrograms of the
+ //! WAVs: `bun tools/spectrogram.ts in.wav out.png [title] [maxFreq] [windowMs]`.
+ 
++mod blender;
+ mod calibrate;
+ mod compare;
+ mod diagnose;
+@@ -21,6 +22,9 @@ usage: chimera <command> [args] [--float]
+   render song    [outdir] [male|female|child]
+   render notes   <in.json> <out> [male|female|child] [--artic tracks.json] [--tele voice.tele]
+                  (melody file; midi <= 0 is a rest; --artic also writes the articulators at 100 Hz)
++  render blender <in.json> <out> [male|female|child] [--rate 200]
++                 (as notes, plus <out>.track.json: articulators, telemetry, phones and notes
++                 over time, to animate a character in Blender)
+   render beatbox [outdir] [preset name | pattern] [male|female|child] [bpm] [bars]
+   render creature [creatureId] [outdir]
+   render vowels  [male|female|child] [out]
+@@ -40,6 +44,24 @@ pub const FS: f64 = 48000.0;
+ 
+ /// The repository root (data files and the generated tables are found from here).
+ pub fn repo_path(rel: &str) -> String {
++    // A copy of the binary shipped without the source tree (e.g. inside a Blender add-on) keeps
++    // its data next to itself: $CHIMERA_ROOT/<rel>, <exe dir>/<rel> or <exe dir>/data/<file>.
++    // Otherwise, as before, the source tree it was built from.
++    let mut candidates = Vec::new();
++    if let Ok(root) = std::env::var("CHIMERA_ROOT") {
++        candidates.push(std::path::PathBuf::from(root).join(rel));
++    }
++    if let Some(dir) = std::env::current_exe().ok().and_then(|e| e.parent().map(|d| d.to_path_buf())) {
++        candidates.push(dir.join(rel));
++        if let Some(name) = std::path::Path::new(rel).file_name() {
++            candidates.push(dir.join("data").join(name));
++        }
++    }
++    for p in candidates {
++        if p.exists() {
++            return p.to_string_lossy().into_owned();
++        }
++    }
+     format!("{}/../../{rel}", env!("CARGO_MANIFEST_DIR"))
+ }
+ 
+@@ -103,6 +125,7 @@ fn run(args: Vec<String>) -> Result<(), String> {
+                 "text" => render::text(&ctx, rest),
+                 "song" => render::song(&ctx, rest),
+                 "notes" => render::notes(&ctx, rest),
++                "blender" => blender::render(&ctx, rest),
+                 "beatbox" => render::beatbox(&ctx, rest),
+                 "creature" => render::creature(&ctx, rest),
+                 "vowels" => render::vowels(&ctx, rest),

@@ -1,0 +1,13 @@
+{
+  "title": "Jingle Bells (James Lord Pierpont, 1857 - public domain)",
+  "bpm": 120,
+  "t0": 1.5,
+  "vibrato": 55,
+  "lyrics": "Jingle bells, jingle bells, jingle all the way! Oh what fun it is to ride in a one horse open sleigh, hey! Jingle bells, jingle bells, jingle all the way! Oh what fun it is to ride in a one horse open sleigh!",
+  "notes": [
+    [57, 1], [57, 1], [57, 2], [57, 1], [57, 1], [57, 2], [57, 1], [60, 1], [53, 1.5], [55, 0.5], [57, 3], [0, 1],
+    [58, 1], [58, 1], [58, 1.5], [58, 0.5], [58, 1], [57, 1], [57, 1], [57, 0.5], [57, 0.5], [57, 1], [55, 1], [55, 1], [57, 1], [55, 2], [60, 1], [0, 1],
+    [57, 1], [57, 1], [57, 2], [57, 1], [57, 1], [57, 2], [57, 1], [60, 1], [53, 1.5], [55, 0.5], [57, 3], [0, 1],
+    [58, 1], [58, 1], [58, 1], [58, 1], [58, 1], [57, 1], [57, 1], [57, 0.5], [57, 0.5], [60, 1], [60, 1], [58, 1], [55, 1], [53, 4]
+  ]
+}
