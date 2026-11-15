@@ -1,4 +1,4 @@
-# BAYC Singing 🎤🍌
+# Ape Synth 🎤🍌
 
 **Make your 3D Bored Ape sing any song and fart along to it, and see inside him while he does it, all in Blender.**
 
@@ -65,20 +65,20 @@ insides on show, plus an MP4 with sound.
 
 ## 2. Install (2 minutes)
 
-1. Download **`bayc_singing-<version>.zip`** from the
+1. Download **`ape_synth-<version>.zip`** from the
    [Releases page](https://github.com/AbyssShadows/ape-synth/releases/latest). Don't unzip it.
 2. In Blender: **Edit > Preferences > Add-ons**. Click the **⌄** menu at the top right, choose
    **Install from Disk...**, and pick the zip.
-3. Make sure **BAYC Singing** is ticked.
+3. Make sure **Ape Synth** is ticked.
 
 > Downloaded the whole repository instead (Code > Download ZIP)? That zip won't install directly.
 > Run `python tools/make_zip.py` to build the add-on zip in `dist/`, or zip the contents of the
-> `bayc_singing` folder yourself.
+> `ape_synth` folder yourself.
 
 ## 3. Make him sing
 
 1. **Open your ape's `.blend`** and save it (the build reads the saved file).
-2. In the 3D Viewport, press **N** to open the sidebar and click the **BAYC Sing** tab.
+2. In the 3D Viewport, press **N** to open the sidebar and click the **Ape Synth** tab.
 3. **1. Character:** click **Check my character**. You should see *Ready to sing*. If not, read
    the lines it shows (see [Troubleshooting](#11-troubleshooting)).
 4. **2. Song:** pick an included song, or switch to **My file** and choose a song file or a MIDI file.
@@ -92,7 +92,7 @@ When it says **Done**, click **Open scene** to see the result and press Play (Sp
 **Play video** if you rendered one.
 
 **Your file is never changed.** Every result is saved as a new `.blend` in the output folder
-(by default `BAYC_Sing_Output`, next to your file).
+(by default `Ape_Synth_Output`, next to your file).
 
 How long it takes on a good PC: the build is about 10–20 seconds. The video for a 30-second song
 is about 1–2 minutes in EEVEE or the X-ray look, and about 30–60 minutes in Cycles.
@@ -120,7 +120,7 @@ is about 1–2 minutes in EEVEE or the X-ray look, and about 30–60 minutes in 
 ### A. Write a song file (a few lines of text)
 
 Copy `songs/template_do_re_mi.json` (inside the add-on folder, or in this repo under
-`bayc_singing/songs/`) and edit it:
+`ape_synth/songs/`) and edit it:
 
 ```json
 {
@@ -194,7 +194,7 @@ your own, add a `"farts"` part to the song file. It uses the same beat grid as t
 ## 7. What you get
 
 In the output folder, one subfolder per song, mode and look (for example
-`BAYC_Sing_Output/fart_cancan_farts_xray/`):
+`Ape_Synth_Output/fart_cancan_farts_xray/`):
 
 | file | what |
 | --- | --- |
@@ -214,7 +214,7 @@ In the scene, everything is plain Blender data you can tweak:
 
 ## 8. Other characters (Jnkyz, Mixamo, ...)
 
-The add-on reads small **profiles** (`bayc_singing/profiles/*.json`). A profile says which bones,
+The add-on reads small **profiles** (`ape_synth/profiles/*.json`). A profile says which bones,
 meshes and shape keys do which job. It can also rename them, and those renames happen only in
 the build's copy.
 
@@ -225,7 +225,7 @@ the build's copy.
   `mixamorig:` prefix and maps the visemes. Hat and ear jiggle bones are off, because their
   placement depends on the character.
 
-See [`bayc_singing/profiles/README.md`](bayc_singing/profiles/README.md) to write a profile for a
+See [`ape_synth/profiles/README.md`](ape_synth/profiles/README.md) to write a profile for a
 new character. It's one small JSON file.
 
 ## 9. Using an AI agent (cheap on tokens)
@@ -243,7 +243,7 @@ Copy-paste prompt:
 
 ## 10. Command line
 
-The panel runs `bayc_singing/engine/cli.py` inside a background Blender. You can run it yourself:
+The panel runs `ape_synth/engine/cli.py` inside a background Blender. You can run it yourself:
 
 ```powershell
 # Windows: the helper finds Blender for you and prints only the important lines
@@ -261,7 +261,7 @@ sh tools/sing.sh ~/apes/my_ape.blend --song bored_ape_boat --mode both --render
 Or call Blender directly:
 
 ```
-blender -b my_ape.blend --python bayc_singing/engine/cli.py -- --song SONG [--voice male|female|child]
+blender -b my_ape.blend --python ape_synth/engine/cli.py -- --song SONG [--voice male|female|child]
         [--mode sing|both|farts] [--look xray|textured] [--render] [--engine eevee|cycles]
         [--lyrics TEXT] [--midi-track N] [--transpose auto|N] [--no-bend] [--floppy 1.0]
         [--profile auto|bayc|jnkyz|mixamo_arkit] [--out DIR] [--check] [--cfg JSON]
@@ -274,6 +274,7 @@ blender -b my_ape.blend --python bayc_singing/engine/cli.py -- --song SONG [--vo
 
 | you see | do this |
 | --- | --- |
+| You installed the earlier **BAYC Singing** (1.0.x) | Ape Synth replaces it. Remove the old one first: **Edit → Preferences → Add-ons → BAYC Singing → ⌄ → Uninstall**, restart Blender, then install Ape Synth. |
 | *the armature lacks bones the dance needs* | Your rig uses other bone names. Pick or write a [profile](#8-other-characters-jnkyz-mixamo-) that renames them. |
 | *no face mesh: none of his meshes has a 'jawOpen' shape key* | The face shape keys are missing, or named differently (add `rename_shape_keys` to a profile). |
 | *the lyrics have N syllables but the tune has M notes* | Add or remove notes, use `~` to hold a vowel, or change the words. The message shows how the synth split them. |
@@ -316,7 +317,7 @@ blender -b my_ape.blend --python bayc_singing/engine/cli.py -- --song SONG [--vo
 Project layout:
 
 ```
-bayc_singing/           the Blender add-on (this is what the release zip contains)
+ape_synth/              the Blender add-on (this is what the release zip contains)
   __init__.py           the panel
   engine/cli.py         the one command that does everything
   engine/bayc_sing.py   face, dance, jiggle, stage, gas clouds

@@ -2,7 +2,7 @@ __pycache__/
 *.pyc
 dist/
 chimera-patch/build/
-BAYC_Sing_Output/
+Ape_Synth_Output/
 *.blend1
 .DS_Store
 Thumbs.db

@@ -13,7 +13,7 @@ They apply to upstream commit `eed4a5ff2695ad151df2210d012b2a4ab584f099`. The so
 not changed.
 
 **Windows** users don't need any of this: the add-on ships a ready-built `chimera.exe` in
-`bayc_singing/bin/windows-x64/`.
+`ape_synth/bin/windows-x64/`.
 
 ## macOS and Linux: build it once (about 5 minutes)
 
@@ -25,9 +25,9 @@ not changed.
    ```
 
    It clones chimera at the pinned commit, applies the patch, builds it, and copies the binary and
-   its dictionary into `../bayc_singing/bin/<platform>/`, where the add-on looks for it.
+   its dictionary into `../ape_synth/bin/<platform>/`, where the add-on looks for it.
 3. Make the add-on zip again (`python tools/make_zip.py`) and install that, or point the add-on's
-   preferences at the binary (Edit > Preferences > Add-ons > BAYC Singing > Voice synth).
+   preferences at the binary (Edit > Preferences > Add-ons > Ape Synth > Voice synth).
 
 ## Windows: rebuild it yourself (optional)
 

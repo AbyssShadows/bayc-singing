@@ -15,7 +15,7 @@
   --engine    eevee | cycles        (textured look only; cycles = slower, path traced)
   --floppy    jiggle looseness, 0.5 (stiff) .. 2 (very floppy)    (default 1)
   --profile   character profile (auto, bayc, jnkyz, mixamo_arkit, ...)  (default auto)
-  --out       output folder (default: BAYC_Sing_Output next to the .blend)
+  --out       output folder (default: Ape_Synth_Output next to the .blend)
   --check     only check the character and the song (fast); builds nothing
   --cfg       JSON overrides for the engine's CFG (see engine/bayc_sing.py)
 
@@ -145,7 +145,7 @@ def main():
         return {"ok": True, "check": True}
 
     blend = bpy.data.filepath
-    out_root = os.path.abspath(a.out or os.path.join(os.path.dirname(blend), "BAYC_Sing_Output"))
+    out_root = os.path.abspath(a.out or os.path.join(os.path.dirname(blend), "Ape_Synth_Output"))
     title = slug(os.path.splitext(os.path.basename(song_path))[0])
     tag = {"sing": "", "both": "_farts", "farts": "_fartsonly"}[a.mode] + ("_xray" if a.look == "xray" else "")
     run = os.path.join(out_root, title + tag)

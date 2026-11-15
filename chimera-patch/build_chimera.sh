@@ -20,7 +20,7 @@ git apply --ignore-whitespace "$HERE/main.rs.patch"
 # keep local paths (user name, folders) out of the binary
 RUSTFLAGS="--remap-path-prefix=${CARGO_HOME:-$HOME/.cargo}=/cargo --remap-path-prefix=$WORK=/chimera" \
   cargo build --release -p chimera-cli
-OUT="$HERE/../bayc_singing/bin/$PLAT"
+OUT="$HERE/../ape_synth/bin/$PLAT"
 mkdir -p "$OUT/data"
 cp target/release/chimera "$OUT/chimera"
 cp public/data/cmudict.txt.gz "$OUT/data/"

@@ -26,7 +26,7 @@ param(
     [string]$Blender = ""
 )
 $ErrorActionPreference = "Stop"
-$cli = Join-Path $PSScriptRoot "..\bayc_singing\engine\cli.py"
+$cli = Join-Path $PSScriptRoot "..\ape_synth\engine\cli.py"
 if (-not $Blender) { $Blender = $env:BLENDER }
 if (-not $Blender) { $c = Get-Command blender -ErrorAction SilentlyContinue; if ($c) { $Blender = $c.Source } }
 if (-not $Blender) {

@@ -75,7 +75,7 @@ CFG = {
     "cycles_samples": 96,         # Cycles: most samples per pixel (adaptive), denoised
     "cycles_noise": 0.04,         # Cycles: adaptive sampling noise threshold (lower = cleaner and slower)
     # where renders go (the command line sets it to the song's output folder); // = next to the .blend
-    "output": "//BAYC_Sing_Output" + os.sep,
+    "output": "//Ape_Synth_Output" + os.sep,
 }
 
 # armature-space axes of this rig: +X = character's left, +Y = up, +Z = forward (towards camera)

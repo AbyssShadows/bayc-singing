@@ -1,6 +1,6 @@
-"""BAYC Singing: make your 3D ape (or another character with a profile) sing and fart any song.
+"""Ape Synth: make your 3D ape (or another character with a profile) sing and fart any song.
 
-The panel lives in the 3D Viewport's sidebar (press N, tab "BAYC Sing"). It never changes your
+The panel lives in the 3D Viewport's sidebar (press N, tab "Ape Synth"). It never changes your
 file: "Make it" runs the build in a second, background Blender on your saved .blend and saves
 the result as a new .blend (and video) in the output folder, so Blender stays usable meanwhile.
 The work itself is engine/cli.py, which you (or an AI agent) can also run from a terminal.
@@ -87,7 +87,7 @@ class BAYCSING_Settings(bpy.types.PropertyGroup):
     floppy: FloatProperty(name="Floppiness", default=1.0, min=0.5, max=2.0,
                           description="How loose the ragdoll jiggle is (1 = default)")
     profile: EnumProperty(name="Character", items=_profile_items)
-    out_dir: StringProperty(name="Output", subtype='DIR_PATH', default="//BAYC_Sing_Output",
+    out_dir: StringProperty(name="Output", subtype='DIR_PATH', default="//Ape_Synth_Output",
                             description="Where the new .blend, audio and video go (// = next to your .blend)")
 
 
@@ -271,10 +271,10 @@ class BAYCSING_OT_open(bpy.types.Operator):
 # the panel
 # ------------------------------------------------------------------------------------------------
 class BAYCSING_PT_panel(bpy.types.Panel):
-    bl_label = "BAYC Sing"
+    bl_label = "Ape Synth"
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'UI'
-    bl_category = "BAYC Sing"
+    bl_category = "Ape Synth"
 
     def draw(self, context):
         s = context.scene.bayc_sing

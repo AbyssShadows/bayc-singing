@@ -6,13 +6,13 @@ This project stands on other people's work. Thank you to all of them.
 
 - **Author:** Jameson Hodge
 - **Original repository:** https://github.com/jamesondh/chimera-vocal-synth
-- **License:** MIT. The full text is in [`bayc_singing/bin/LICENSE-chimera-vocal-synth.txt`](bayc_singing/bin/LICENSE-chimera-vocal-synth.txt).
+- **License:** MIT. The full text is in [`ape_synth/bin/LICENSE-chimera-vocal-synth.txt`](ape_synth/bin/LICENSE-chimera-vocal-synth.txt).
 
 chimera is a physical-modeling voice synthesizer: it simulates a human airway (lungs, vocal folds,
 throat, tongue, lips) to sing. Every singing voice in this project, and the mouth, tongue and
 throat movements the animation follows, come from it.
 
-`bayc_singing/bin/windows-x64/chimera.exe` is built from upstream commit
+`ape_synth/bin/windows-x64/chimera.exe` is built from upstream commit
 `eed4a5ff2695ad151df2210d012b2a4ab584f099`, with two small additions. Both are in
 [`chimera-patch/`](chimera-patch/):
 
@@ -26,14 +26,14 @@ The sound engine is not changed. These additions are offered under the same MIT 
 ## CMU Pronouncing Dictionary
 
 - **Source:** Carnegie Mellon University. chimera reads it to split lyrics into syllables and sounds.
-- **File:** `bayc_singing/bin/windows-x64/data/cmudict.txt.gz`, as shipped in chimera-vocal-synth.
-- **License:** BSD-style. The full text is in [`bayc_singing/bin/LICENSE-CMUdict.txt`](bayc_singing/bin/LICENSE-CMUdict.txt).
+- **File:** `ape_synth/bin/windows-x64/data/cmudict.txt.gz`, as shipped in chimera-vocal-synth.
+- **License:** BSD-style. The full text is in [`ape_synth/bin/LICENSE-CMUdict.txt`](ape_synth/bin/LICENSE-CMUdict.txt).
 
 ## AVHershey Simplex font
 
 - **Author:** Stewart C. Russell (https://github.com/scruss/AVHershey-OTF). The font is derived
   from Allen V. Hershey's public-domain vector fonts (1967).
-- **License:** CC0 1.0 / WTFPL. The full text is in [`bayc_singing/fonts/AVHERSHEY-LICENSE.txt`](bayc_singing/fonts/AVHERSHEY-LICENSE.txt).
+- **License:** CC0 1.0 / WTFPL. The full text is in [`ape_synth/fonts/AVHERSHEY-LICENSE.txt`](ape_synth/fonts/AVHERSHEY-LICENSE.txt).
 - **Used for:** the lettering in the X-ray look, the same font chimera's own display uses.
 
 ## Blender

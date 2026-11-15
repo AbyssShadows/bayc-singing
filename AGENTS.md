@@ -29,7 +29,7 @@ sh tools/sing.sh "<character.blend>" --song <song> [--mode sing|both|farts] [--l
 - Success ends with `BAYC: done {"blend": ..., "video": ...}`. The input .blend is never modified.
 - Times: build about 15 s; render about 1–2 min per 30 s of song (EEVEE / X-ray); Cycles about 30–60 min.
   For long renders, run in the background and wait for the process to exit.
-- Outputs: `<blend dir>/BAYC_Sing_Output/<song>[_farts|_fartsonly][_xray]/` with `result.json`
+- Outputs: `<blend dir>/Ape_Synth_Output/<song>[_farts|_fartsonly][_xray]/` with `result.json`
   and `build.log`. Read `build.log` only on failure.
 
 ## Recipe 2: write a new song file
@@ -59,11 +59,11 @@ Rules (the build enforces them):
 ## Recipe 3: the character is not ready
 
 `-Check` prints the character report. An error names what's missing:
-- *lacks bones*: the rig uses other names. Copy `bayc_singing/profiles/mixamo_arkit.json` to a new
+- *lacks bones*: the rig uses other names. Copy `ape_synth/profiles/mixamo_arkit.json` to a new
   profile, set `bone_prefix` / `rename_bones`, and pass `-Profile <id>`.
 - *no face mesh / lacks the lip-sync shape keys*: map the character's names to `jawOpen
   mouthClose mouthFunnel mouthPucker` (plus `fff_M tth_M rrr_M sss_M ssh_M lntd_M gk_M eh_M` if
-  present) with `rename_shape_keys`. The schema is in `bayc_singing/profiles/README.md`.
+  present) with `rename_shape_keys`. The schema is in `ape_synth/profiles/README.md`.
 
 ## Errors and fixes
 
@@ -76,6 +76,6 @@ Rules (the build enforces them):
 | anything else | read the last 20 lines of `build.log` in the run folder |
 
 ## Don'ts
-- Don't edit `bayc_singing/engine/*` for a normal song job. Tuning goes in `--cfg '{"key": value}'`
+- Don't edit `ape_synth/engine/*` for a normal song job. Tuning goes in `--cfg '{"key": value}'`
   (keys are in `CFG` at the top of `engine/bayc_sing.py`; e.g. `jaw_gain`, `bounce_cm`, `bend_deg`).
 - Don't save over the user's .blend, and don't delete their files. The build writes new files only.

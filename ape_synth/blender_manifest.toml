@@ -1,8 +1,8 @@
 schema_version = "1.0.0"
 
-id = "bayc_singing"
-version = "1.0.1"
-name = "BAYC Singing"
+id = "ape_synth"
+version = "1.1.0"
+name = "Ape Synth"
 tagline = "Make your 3D ape sing and fart any song, X-ray organs included"
 maintainer = "AbyssShadows"
 type = "add-on"
