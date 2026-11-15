@@ -10,7 +10,7 @@
   --mode      sing | both | farts   (sing, sing + farts, farts only; default sing)
   --transpose auto | <semitones>    (auto: moves the tune by octaves into the voice's range)
   --no-bend   no bend-over section in a song with farts
-  --look      textured | xray                              (default textured)
+  --look      xray | textured   (xray: wireframe with his organs built inside; default xray)
   --render    also render the video (otherwise just build the scene)
   --engine    eevee | cycles        (textured look only; cycles = slower, path traced)
   --floppy    jiggle looseness, 0.5 (stiff) .. 2 (very floppy)    (default 1)
@@ -43,6 +43,8 @@ import bpy  # noqa: E402
 
 LOG = []
 RUN = {}
+ORGANS = {"XR_folds": "vocal folds", "XR_throat": "throat", "XR_trachea": "windpipe", "XR_lungs": "lungs",
+          "XR_gut": "stomach and gut", "XR_gas": "gas bubbles", "XR_exit": "exit"}
 
 
 def say(msg):
@@ -96,7 +98,7 @@ def main():
     ap.add_argument("--mode", choices=("sing", "both", "farts"), default="sing")
     ap.add_argument("--transpose", default="auto")
     ap.add_argument("--no-bend", action="store_true")
-    ap.add_argument("--look", choices=("textured", "xray"), default="textured")
+    ap.add_argument("--look", choices=("xray", "textured"), default="xray")
     ap.add_argument("--render", action="store_true")
     ap.add_argument("--engine", choices=("eevee", "cycles"), default="eevee")
     ap.add_argument("--floppy", type=float, default=1.0)
@@ -181,6 +183,16 @@ def main():
         xlog = bayc_xray.apply(stem + ".geom.json", stem + ".track.json", os.path.join(run, "xray_cache"),
                                cfg_over={"voice": a.mode != "farts"}, farts=farts, voice_wav=stem + ".wav")
         LOG.extend("xray: " + x for x in xlog)
+        built, poke = [], []
+        for x in xlog:
+            m = re.match(r"inside check (\S+): (\d+)/(\d+)", x)
+            if m:
+                (poke if m.group(2) != m.group(3) else built).append(ORGANS.get(m.group(1), m.group(1)))
+        if built or poke:
+            say("anatomy built inside him: " + ", ".join(built + poke))
+        if poke:
+            say("WARNING partly outside the body: " + ", ".join(poke) +
+                " (see build.log; the profile's \"xray\" values can move them)")
         sc.render.filepath = os.path.join(run, title + "_xray_")
     pose = bpy.data.actions.get("Pose")
     if pose:

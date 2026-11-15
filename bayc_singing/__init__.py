@@ -19,10 +19,10 @@ ADDON_DIR = os.path.dirname(os.path.abspath(__file__))
 ENGINE = os.path.join(ADDON_DIR, "engine")
 SONGS = os.path.join(ADDON_DIR, "songs")
 PROFILES = os.path.join(ADDON_DIR, "profiles")
-REPO_URL = "https://github.com/AbyssShadows/bayc-singing"
+REPO_URL = "https://github.com/AbyssShadows/ape-synth"
 
 JOB = {"proc": None, "queue": None, "status": "", "progress": None, "result": None, "error": None,
-       "lines": [], "check": [], "check_ok": None}
+       "lines": [], "check": [], "check_ok": None, "anatomy": ""}
 _ENUM_CACHE = {}
 
 
@@ -79,9 +79,9 @@ class BAYCSING_Settings(bpy.types.PropertyGroup):
     transpose_auto: BoolProperty(name="Auto key", default=True,
                                  description="Move the tune by octaves into the voice's range")
     transpose: IntProperty(name="Transpose", default=0, min=-36, max=36, description="Semitones")
-    look: EnumProperty(name="Look", items=[
-        ("textured", "Textured", "Your character as it is, with its own materials and lights"),
-        ("xray", "X-ray", "Glowing wireframe with the vocal folds, throat and (with farts) the gut inside")])
+    look: EnumProperty(name="Look", default="xray", items=[
+        ("xray", "X-ray", "Glowing wireframe with his organs built inside: vocal folds, throat, lungs and (with farts) the gut"),
+        ("textured", "Textured", "Your character as it is, with its own materials and lights")])
     render: BoolProperty(name="Render video", default=False, description="Also render the MP4 (takes a while)")
     engine: EnumProperty(name="Engine", items=[("eevee", "EEVEE (fast)", ""), ("cycles", "Cycles (best, slow)", "")])
     floppy: FloatProperty(name="Floppiness", default=1.0, min=0.5, max=2.0,
@@ -160,6 +160,8 @@ def _poll_job():
                 pass
         elif line.startswith("step "):
             JOB["status"] = line.split(":", 1)[1].strip().capitalize()
+        elif line.startswith(("anatomy", "WARNING")):
+            JOB["anatomy"] = line
         elif line.startswith("saved "):
             JOB["result"] = dict(JOB["result"] or {}, blend=line[6:])
     proc = JOB["proc"]
@@ -224,7 +226,7 @@ class BAYCSING_OT_make(bpy.types.Operator):
                                 encoding="utf-8", errors="replace", bufsize=1, creationflags=flags)
         q = queue.Queue()
         threading.Thread(target=_reader, args=(proc, q), daemon=True).start()
-        JOB.update(proc=proc, queue=q, status="Starting", progress=None, result=None, error=None, lines=[])
+        JOB.update(proc=proc, queue=q, status="Starting", progress=None, result=None, error=None, lines=[], anatomy="")
         if not bpy.app.timers.is_registered(_poll_job):
             bpy.app.timers.register(_poll_job, first_interval=0.5)
         return {'FINISHED'}
@@ -339,6 +341,9 @@ class BAYCSING_PT_panel(bpy.types.Panel):
                     box.label(text=chunk)
             elif running and JOB["lines"]:
                 box.label(text=JOB["lines"][-1][:60])
+            if not running and JOB["anatomy"] and not JOB["error"]:
+                for chunk in _wrap(JOB["anatomy"], 46):
+                    box.label(text=chunk)
             res = JOB["result"] or {}
             if not running and res:
                 row = box.row(align=True)

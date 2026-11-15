@@ -15,7 +15,7 @@ param(
     [string]$Lyrics = "",
     [ValidateSet("male", "female", "child")][string]$Voice = "male",
     [ValidateSet("sing", "both", "farts")][string]$Mode = "sing",
-    [ValidateSet("textured", "xray")][string]$Look = "textured",
+    [ValidateSet("xray", "textured")][string]$Look = "xray",
     [switch]$Render,
     [ValidateSet("eevee", "cycles")][string]$Engine = "eevee",
     [double]$Floppy = 1.0,

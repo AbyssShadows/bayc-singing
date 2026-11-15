@@ -9,12 +9,12 @@ Each run prints only `BAYC: ...` lines; ignore all other output.
 ```powershell
 # Windows (finds Blender itself; -Check first is cheap, about 5 s)
 .\tools\sing.ps1 -Blend "<character.blend>" -Song <song> -Check
-.\tools\sing.ps1 -Blend "<character.blend>" -Song <song> [-Mode sing|both|farts] [-Look textured|xray] [-Voice male|female|child] [-Render] [-Engine eevee|cycles]
+.\tools\sing.ps1 -Blend "<character.blend>" -Song <song> [-Mode sing|both|farts] [-Look xray|textured] [-Voice male|female|child] [-Render] [-Engine eevee|cycles]
 ```
 ```sh
 # macOS / Linux (set BLENDER=/path/to/blender if it isn't found)
 sh tools/sing.sh "<character.blend>" --song <song> --check
-sh tools/sing.sh "<character.blend>" --song <song> [--mode sing|both|farts] [--look textured|xray] [--voice ...] [--render] [--engine eevee|cycles]
+sh tools/sing.sh "<character.blend>" --song <song> [--mode sing|both|farts] [--look xray|textured] [--voice ...] [--render] [--engine eevee|cycles]
 ```
 
 - `<song>`: an included name (`bored_ape_boat`, `jungle_groove`, `fart_cancan`, `jingle_bells`,
@@ -22,6 +22,10 @@ sh tools/sing.sh "<character.blend>" --song <song> [--mode sing|both|farts] [--l
   (add `-Lyrics "words"` or `--lyrics "words"`; without lyrics he scats).
 - Modes: `sing`, `both` (sing + farts; the song's own fart part or an automatic one), `farts`
   (the farts play the tune, no singing).
+- Looks: `xray` (default) is a wireframe with his organs built inside him (vocal folds, throat,
+  windpipe, lungs; the gut in fart songs); `textured` keeps his own materials. X-ray runs print
+  `BAYC: anatomy built inside him: ...`; a `WARNING partly outside` line means the organs don't
+  fit this character (tune the profile's `xray` values).
 - Success ends with `BAYC: done {"blend": ..., "video": ...}`. The input .blend is never modified.
 - Times: build about 15 s; render about 1–2 min per 30 s of song (EEVEE / X-ray); Cycles about 30–60 min.
   For long renders, run in the background and wait for the process to exit.

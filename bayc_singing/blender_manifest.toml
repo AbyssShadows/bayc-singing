@@ -1,12 +1,12 @@
 schema_version = "1.0.0"
 
 id = "bayc_singing"
-version = "1.0.0"
+version = "1.0.1"
 name = "BAYC Singing"
-tagline = "Make your 3D ape sing and fart any song, with ragdoll jiggle"
+tagline = "Make your 3D ape sing and fart any song, X-ray organs included"
 maintainer = "AbyssShadows"
 type = "add-on"
-website = "https://github.com/AbyssShadows/bayc-singing"
+website = "https://github.com/AbyssShadows/ape-synth"
 tags = ["Animation", "Rigging", "Render"]
 
 blender_version_min = "5.2.0"

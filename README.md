@@ -1,20 +1,27 @@
 # BAYC Singing 🎤🍌
 
-**Make your 3D Bored Ape sing any song, fart along to it, and wobble like a ragdoll, all inside Blender.**
+**Make your 3D Bored Ape sing any song and fart along to it, and see inside him while he does it, all in Blender.**
 
 Pick a song (or drop in a MIDI file), pick a voice, choose *Sing*, *Sing + Farts* or *Farts Only*,
-and press one button. You get a Blender scene with your ape lip-syncing, dancing, flapping his
-ears and hopping his hat, plus an MP4 with sound.
+and press one button. You get a Blender scene of your ape singing, dancing and wobbling with his
+insides on show, plus an MP4 with sound.
 
+- **His insides, built for him.** The *X-ray* look (the default) turns your ape into a glowing
+  wireframe and builds the anatomy inside him: a larynx with vibrating vocal folds, a throat that
+  lights up with the sound, a windpipe, bronchi, and lungs that fill between lines. When he farts
+  you also get his esophagus, stomach, intestines and colon, with gas bubbles travelling down to
+  the exit. Every organ is measured from your ape's own neck, chest and belly, moves with his rig
+  as he dances, and is checked to stay inside his skin. His own tongue, teeth and gums do the
+  singing. A vocal-fold strobe, the pitch and the sung words run at the side of the frame, plus
+  sound displays when he farts.
 - **A real singing voice.** A physical model of a human airway sings the song. The mouth, tongue
   and jaw follow the same movements that made the sound, so the lip sync isn't guessed.
 - **Goofy ragdoll physics.** A bobble head, floppy arms and hands, flapping ears, googly eyes and
   a hat that hops on the beat.
 - **Farts that play the tune.** Toots, parps, rips and squeaks, pitched so they can play a melody.
-  He bends over and shakes for the big ones, and green gas clouds come out.
-- **Two looks.** *Textured* is your ape as he is, rendered with EEVEE or Cycles. *X-ray* is a
-  glowing wireframe that shows his vocal folds, throat and tongue working, plus his gut when he
-  farts, with sound displays at the side.
+  He bends over and shakes for the big ones.
+- **Or keep him textured.** The *Textured* look is your ape as he is, with his own materials and
+  green gas clouds when he farts. Render it with EEVEE or Cycles.
 - **Your own music.** Use the included songs, write one in a few lines of text, import a MIDI
   melody (karaoke `.kar` files bring their lyrics), or ask an AI agent to write one.
 - **Other characters.** Works with any ape built on the BAYC Advanced Skeleton rig. Jnkyz support
@@ -59,7 +66,7 @@ ears and hopping his hat, plus an MP4 with sound.
 ## 2. Install (2 minutes)
 
 1. Download **`bayc_singing-<version>.zip`** from the
-   [Releases page](https://github.com/AbyssShadows/bayc-singing/releases/latest). Don't unzip it.
+   [Releases page](https://github.com/AbyssShadows/ape-synth/releases/latest). Don't unzip it.
 2. In Blender: **Edit > Preferences > Add-ons**. Click the **⌄** menu at the top right, choose
    **Install from Disk...**, and pick the zip.
 3. Make sure **BAYC Singing** is ticked.
@@ -76,7 +83,8 @@ ears and hopping his hat, plus an MP4 with sound.
    the lines it shows (see [Troubleshooting](#11-troubleshooting)).
 4. **2. Song:** pick an included song, or switch to **My file** and choose a song file or a MIDI file.
 5. **3. Performance:** pick the voice and the mode (**Sing**, **Sing + Farts**, **Farts Only**).
-6. **4. Look and render:** choose **Textured** or **X-ray**, and tick **Render video** if you want the MP4.
+6. **4. Look and render:** keep **X-ray** to see his organs working inside him, or pick **Textured**
+   for your ape as he is. Tick **Render video** if you want the MP4.
 7. Click **Make him sing!**
 
 The build runs in the background, so you can keep using Blender. The panel shows the progress.
@@ -102,7 +110,7 @@ is about 1–2 minutes in EEVEE or the X-ray look, and about 30–60 minutes in 
 | **Mode** | **Sing**: he sings. **Sing + Farts**: he sings and farts, using the song's own fart part or one fart in every gap of the vocal line plus a rip at the end. **Farts Only**: the farts play the tune, and he keeps his mouth shut and dances. |
 | **Bend over** | In a song with farts: a deep bend-over with a butt shake in the middle of the song. |
 | **Floppiness** | How loose the ragdoll jiggle is: 0.5 is stiff, 1 is the default, 2 is very floppy. |
-| **Look** | **Textured**: your ape with his own materials and your scene's lights (a three-light studio is added if your scene has none). **X-ray**: the glowing wireframe with the vocal anatomy inside. |
+| **Look** | **X-ray** (default): the glowing wireframe with his organs built inside him (larynx and vocal folds, throat, windpipe, lungs, and the gut when he farts), all measured from his body. The run ends by reporting that they sit inside him. **Textured**: your ape with his own materials and your scene's lights (a three-light studio is added if your scene has none). |
 | **Render video** | Also render the MP4 with sound. Without it you get the scene only, to play or render yourself. |
 | **Engine** | Textured look only. **EEVEE** is fast. **Cycles** is path traced, the best quality and much slower. Cycles renders frames first and resumes if stopped. |
 | **Output** | Where results go. `//` means next to your `.blend`. |
@@ -254,7 +262,7 @@ Or call Blender directly:
 
 ```
 blender -b my_ape.blend --python bayc_singing/engine/cli.py -- --song SONG [--voice male|female|child]
-        [--mode sing|both|farts] [--look textured|xray] [--render] [--engine eevee|cycles]
+        [--mode sing|both|farts] [--look xray|textured] [--render] [--engine eevee|cycles]
         [--lyrics TEXT] [--midi-track N] [--transpose auto|N] [--no-bend] [--floppy 1.0]
         [--profile auto|bayc|jnkyz|mixamo_arkit] [--out DIR] [--check] [--cfg JSON]
 ```
