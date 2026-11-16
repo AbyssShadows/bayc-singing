@@ -63,6 +63,8 @@ CFG = {
     "fart_spine_damp": 2.0,       # extra damping of his spine, neck and head springs (1 = as in other songs)
     "fart_spine_stiff": 1.0,      # extra stiffness of the same (1 = as in other songs)
     "bend_deg": 62.0,             # how far his torso tips forward in a deep bend-over
+    "hat_hop_beat": 1.0,          # how high the hat hops on the beat (0 = it stays on)
+    "hat_hop_fart": 1.0,          # how high it jumps when he farts
     # jiggle multipliers (1 = default physics; lower stiffness_scale = floppier)
     "stiffness_scale": 1.0,
     "damping_scale": 1.0,
@@ -74,6 +76,7 @@ CFG = {
     "motion_blur": True,          # EEVEE only
     "cycles_samples": 96,         # Cycles: most samples per pixel (adaptive), denoised
     "cycles_noise": 0.04,         # Cycles: adaptive sampling noise threshold (lower = cleaner and slower)
+    "cam_dz": None,               # camera and light height offset in m (None: from his head height; 0 for a BAYC ape)
     # where renders go (the command line sets it to the song's output folder); // = next to the .blend
     "output": "//Ape_Synth_Output" + os.sep,
 }
@@ -538,6 +541,26 @@ def mouth_parts(mouth_ob):
     return part, inv, B, key_co
 
 
+def sculpt_tongue(B, T, opts):
+    """tongue-only shapes for a rig without tongue visemes, sculpted on its own tongue (T): the
+    front half curls up towards the palate (Tongue_TipUp), and the whole tongue pulls back with
+    its middle humped up (Tongue_Back, for k and g)"""
+    P = B[T]
+    z0, z1 = float(P[:, 2].min()), float(P[:, 2].max())
+    s = (B[:, 2] - z0) / max(z1 - z0, 1e-6)          # 0 at the root .. 1 at the tip
+    rise = float(opts.get("tip_rise_cm", 3.0))
+    back = float(opts.get("pull_back_cm", 1.0))
+    w = smooth(0.35, 1.0, s) ** 1.5
+    up = np.zeros_like(B)
+    up[:, 1] = rise * w
+    up[:, 2] = -0.25 * rise * w
+    hump = np.exp(-((s - 0.4) / 0.22) ** 2)
+    bk = np.zeros_like(B)
+    bk[:, 1] = 0.6 * back * hump
+    bk[:, 2] = -back * (1 - 0.5 * smooth(0.6, 1.0, s))
+    return {"Tongue_TipUp": up, "Tongue_Back": bk}
+
+
 def ensure_tongue_keys(cfg, log):
     """Tongue-only shape keys on the mouth mesh, cut out of the rig's own sculpted visemes:
     Tongue_TipUp = (lntd_M - eh_M) on the tongue (tip to the palate, the jaw part removed) and
@@ -551,13 +574,17 @@ def ensure_tongue_keys(cfg, log):
     kb = mouth.data.shape_keys.key_blocks
     part, inv, B, key_co = mouth_parts(mouth)
     T = part == 1
-    if not T.any() or not all(k in kb for k in ("lntd_M", "gk_M", "eh_M", "jawOpen")):
+    if not T.any() or "jawOpen" not in kb:
         log.append("tongue: no separate tongue found in the mouth mesh; tongue keys skipped")
         return None
+    sculpted = None
+    if not all(k in kb for k in ("lntd_M", "gk_M", "eh_M")):
+        sculpted = sculpt_tongue(B, T, (cfg.get("_profile") or {}).get("tongue_sculpt") or {})
+        log.append("tongue: no tongue visemes on this rig; tip-up and pull-back shapes sculpted on his own tongue")
     deltas = {}
     for name, src in (("Tongue_TipUp", "lntd_M"), ("Tongue_Back", "gk_M")):
         d = np.zeros_like(B)
-        d[T] = (key_co(src) - key_co("eh_M"))[T]
+        d[T] = (key_co(src) - key_co("eh_M"))[T] if sculpted is None else sculpted[name][T]
         deltas[name] = d
         k = kb.get(name) or mouth.shape_key_add(name=name, from_mix=False)
         k.data.foreach_set("co", (B + d).ravel())
@@ -586,6 +613,29 @@ def ensure_tongue_keys(cfg, log):
     return {"rise": rise, "drop": drop, "lift0": lift0}
 
 
+def soft_hat_weights(hat, head_ob, hw, log):
+    """a soft hat (a beanie): its weight on Hat_Jiggle grows with the distance from his head, so
+    the rim stays on and only the parts that stand away from it flop"""
+    from mathutils.bvhtree import BVHTree
+    sme = head_ob.data
+    bvh = BVHTree.FromPolygons([v.co.copy() for v in sme.vertices], [tuple(p.vertices) for p in sme.polygons])
+    me = hat.data
+    dist = np.array([bvh.find_nearest(v.co)[3] for v in me.vertices])
+    w = smooth(hw["near"], hw["far"], dist)
+    g_head = hat.vertex_groups["Head"]
+    g_hat = hat.vertex_groups.new(name="Hat_Jiggle")
+    moved = 0
+    for v in me.vertices:
+        wi = float(w[v.index])
+        if wi <= 1e-4:
+            continue
+        old = next((g.weight for g in v.groups if g.group == g_head.index), 0.0)
+        g_hat.add([v.index], old * wi, 'REPLACE')
+        g_head.add([v.index], old * (1 - wi), 'REPLACE')
+        moved += 1
+    log.append(f"hat weights: {moved} of {len(me.vertices)} vertices (the parts away from his head) flop on Hat_Jiggle")
+
+
 def ensure_extra_bones(cfg, log):
     """Hat_Jiggle (hat on its own bone so it can hop) and Ear_L / Ear_R (floppy ears)."""
     arm = bpy.data.objects[cfg["armature"]]
@@ -608,11 +658,14 @@ def ensure_extra_bones(cfg, log):
         _set_mode(arm, 'OBJECT')
         arm.hide_set(hide)
         log.append(f"added bones {need}")
-    # hat: move its single 'Head' group onto the hat bone
+    # hat: move its single 'Head' group onto the hat bone (a soft hat: only the parts away from his head)
     hat = bpy.data.objects.get(cfg["hat_mesh"] or "")
     if hat is not None and "Hat_Jiggle" in arm.data.bones and "Hat_Jiggle" not in hat.vertex_groups and "Head" in hat.vertex_groups:
-        hat.vertex_groups["Head"].name = "Hat_Jiggle"
-        log.append("hat weights -> Hat_Jiggle")
+        if prof.get("hat_weights"):
+            soft_hat_weights(hat, bpy.data.objects[cfg["head_mesh"]], prof["hat_weights"], log)
+        else:
+            hat.vertex_groups["Head"].name = "Hat_Jiggle"
+            log.append("hat weights -> Hat_Jiggle")
     # ears: lateral part of the head mesh, smooth falloff from the skull
     head_ob = bpy.data.objects[cfg["head_mesh"]]
     ew = prof.get("ear_weights")
@@ -792,6 +845,8 @@ def performance(tr, sig, cfg):
     deep = fz["deep"] if fz else zero
     kick = cfg["fart_kick"] * fz["kick"] if fz else zero
     bs = cfg["bend_deg"] / 62.0                           # the bend angles below add up to 62 degrees
+    # the character's own resting stance on top of its rest pose (e.g. arms down from an A-pose), degrees
+    base_pose = {b: tuple(math.radians(a) for a in v) for b, v in ((cfg.get("_profile") or {}).get("base_pose") or {}).items()}
 
     out = []
     for i in range(nF):
@@ -826,6 +881,9 @@ def performance(tr, sig, cfg):
             d[f"{side}ForeArm"] = (-(0.2 + 0.85 * amt + 0.6 * up) - 0.15 * B, 0.0, sgn * 0.25 * up)
             d[f"{side}Hand"] = (-0.2 * amt, 0.0, sgn * 0.15 * amt)
         d["R_Eye"] = d["L_Eye"] = (-g_pitch[i] - 0.6 * look_up[i] * song_on[i], g_yaw[i], 0.0)
+        for b, (bx, by, bz) in base_pose.items():
+            rx, ry, rz = d.get(b, (0.0, 0.0, 0.0))
+            d[b] = (rx + bx, ry + by, rz + bz)
         out.append((hip, d))
     return out, nF, {"groove": groove, "fin": fin, "flop": flop, "phi": phi,
                      "t_finale": fin_start, "t_end": t_end, "fz": fz}
@@ -842,7 +900,9 @@ def simulate(rig, tr, perf, nF, extra, cfg, log):
     g_vec = Vector((0.0, -981.0, 0.0))  # cm/s^2, armature space (+Y up)
     rng = random.Random(cfg["seed"] + 1)
 
-    jig = {n: v for n, v in JIGGLE.items() if n in rig.parent}
+    J = dict(JIGGLE)
+    J.update({k: tuple(v) for k, v in ((cfg.get("_profile") or {}).get("jiggle") or {}).items()})
+    jig = {n: v for n, v in J.items() if n in rig.parent}
     state = {}  # bone -> [tail_pos, tail_vel, prev_target, prev_head]
     hop_y, hop_v = 0.0, 0.0
     phi = extra["phi"]
@@ -870,7 +930,7 @@ def simulate(rig, tr, perf, nF, extra, cfg, log):
             kicks["R_Eye"] = Vector((rng.uniform(-1, 1) * 110, 0, rng.uniform(-1, 1) * 60))
             kicks["L_Eye"] = Vector((rng.uniform(-1, 1) * 110, 0, rng.uniform(-1, 1) * 60))
             if math.floor(phi[i]) % 2 == 0:
-                hop_v += 52.0 * G
+                hop_v += 52.0 * G * cfg["hat_hop_beat"]
         if i in note_on:
             n = note_on[i]
             acc = 0.5 + 0.5 * min(1.0, n["beats"])
@@ -878,7 +938,7 @@ def simulate(rig, tr, perf, nF, extra, cfg, log):
                 kicks[hb] = Vector((rng.uniform(-0.4, 0.4), rng.uniform(0.3, 1.0), rng.uniform(-0.5, 0.5))) * 40 * acc
         if fart_onset is not None and fart_onset[i] > 0:       # a fart: the hat jumps, the ears flap
             o = min(1.6, float(fart_onset[i])) * cfg["fart_kick"]
-            hop_v += 30.0 * o
+            hop_v += 30.0 * o * cfg["hat_hop_fart"]
             kicks["Ear_L"] = kicks.get("Ear_L", Vector()) + Vector((0, 28 * o, -14 * o))
             kicks["Ear_R"] = kicks.get("Ear_R", Vector()) + Vector((0, 28 * o, -14 * o))
         # hat hop: vertical spring on the hat with a floor (it lands back on the head)
@@ -1071,6 +1131,16 @@ def write_body(rig, results, log):
 # --------------------------------------------------------------------------------------------
 # 6. stage: audio, camera, render settings
 # --------------------------------------------------------------------------------------------
+def head_height_offset(cfg):
+    """how much higher (+) or lower (-) his head is than a BAYC ape's, in m: the camera and the
+    studio lights follow it (0 for a BAYC ape)"""
+    arm = bpy.data.objects[cfg["armature"]]
+    b = arm.data.bones.get("Head")
+    if b is None:
+        return 0.0
+    return round((arm.matrix_world @ b.head_local).z - 1.6904, 3) + 0.0
+
+
 def setup_stage(wav_path, nF, cfg, title, log, extra=None):
     sc = bpy.context.scene
     sc.render.fps, sc.render.fps_base = cfg["fps"], 1.0
@@ -1099,7 +1169,8 @@ def setup_stage(wav_path, nF, cfg, title, log, extra=None):
         (bpy.data.collections.get("Camera") or sc.collection).objects.link(tgt)
     tgt.empty_display_size = 0.1
     tgt.animation_data_clear()
-    tgt.location = (0.0, -0.05, 1.6)
+    dz = cfg.get("cam_dz") or 0.0
+    tgt.location = (0.0, -0.05, 1.6 + dz)
     for c in list(cam.constraints):
         cam.constraints.remove(c)
     tc = cam.constraints.new('TRACK_TO')
@@ -1119,11 +1190,11 @@ def setup_stage(wav_path, nF, cfg, title, log, extra=None):
     wide = 1.0 if (extra and extra.get("fz")) else 0.0     # a fart part: the whole bend must fit
     xs = 0.15 + drift(0.012, 0.9)
     ys = -2.95 + 0.32 * push - 1.05 * pull * (1 - 0.6 * wide) - 1.0 * wide + drift(0.01, 0.7)
-    zs = 1.62 - 0.22 * wide + drift(0.008, 1.1)
+    zs = 1.62 - 0.22 * wide + drift(0.008, 1.1) + dz
     for j, vals in enumerate((xs, ys, zs)):
         _write_curve(cb, "location", j, vals, 1)
     act_t, slot_t, cb_t = _new_action("BAYC_Sing_CamTarget", 'OBJECT', tgt.name)
-    _write_curve(cb_t, "location", 2, 1.6 - 0.06 * pull - 0.25 * wide, 1)
+    _write_curve(cb_t, "location", 2, 1.6 - 0.06 * pull - 0.25 * wide + dz, 1)
     tgt.animation_data_create()
     tgt.animation_data.action = act_t
     tgt.animation_data.action_slot = slot_t
@@ -1478,6 +1549,7 @@ def build(track_path, wav_path, title="bayc_song", cfg_over=None, farts=None, fa
     if not rep["ok"]:
         raise RuntimeError("this character can't sing yet: " + "; ".join(rep["errors"]))
     cfg = dict(CFG)
+    cfg.update((CFG.get("_profile") or {}).get("cfg") or {})      # the character's own tuning
     if cfg_over:
         cfg.update(cfg_over)
     if cfg_over:
@@ -1486,6 +1558,11 @@ def build(track_path, wav_path, title="bayc_song", cfg_over=None, farts=None, fa
     tr = Track(track_path, cfg["fps"])
     log.append(f"track: {tr.duration:.2f} s, {len(tr.notes)} notes, {len(tr.segments)} phones, {tr.n_frames} frames")
     cfg["_farts"] = farts
+    if cfg.get("cam_dz") is None:
+        cfg["cam_dz"] = head_height_offset(cfg)
+    CFG["_cam_dz"] = cfg["cam_dz"]
+    if cfg["cam_dz"]:
+        log.append(f"camera and lights {100 * cfg['cam_dz']:+.1f} cm (his head height vs a BAYC ape's)")
     if farts:
         tr.extend(farts["duration"])
         log.append(f"fart part: {len(farts['events'])} notes, {len(farts.get('bend', []))} bend-over section(s); timeline {tr.duration:.2f} s, {tr.n_frames} frames")
@@ -1511,7 +1588,7 @@ def build(track_path, wav_path, title="bayc_song", cfg_over=None, farts=None, fa
     results = simulate(rig_, tr, perf, nF, extra, cfg, log)
     write_face(W, cfg, nF, log)
     write_body(rig_, results, log)
-    rig.ensure_lights(log)
+    rig.ensure_lights(log, cfg["cam_dz"])
     setup_stage(wav_path, nF, cfg, title, log, extra)
     _clear_fart_stage()
     if farts and fart_fx:

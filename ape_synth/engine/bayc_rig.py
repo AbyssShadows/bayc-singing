@@ -11,6 +11,7 @@ import math
 import os
 
 import bpy
+import numpy as np
 from mathutils import Vector
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -97,6 +98,64 @@ def _find(role, prof, meshes, taken):
     return None
 
 
+def _groups(ob):
+    return {g.name for g in ob.vertex_groups}
+
+
+def _eyes_by_weights(meshes, taken):
+    """generic: a mesh skinned only to eye bones"""
+    for o in meshes:
+        g = _groups(o)
+        if o.name not in taken and g and all("eye" in n.lower() for n in g):
+            return o
+    return None
+
+
+def _hat_by_weights(meshes, taken):
+    """a mesh skinned only to the head bone that reaches highest (a hat; hair sits lower)"""
+    best, top = None, None
+    for o in meshes:
+        if o.name in taken or _groups(o) != {"Head"}:
+            continue
+        if any(w in o.name.lower() for w in ("hair", "brow", "lash", "beard", "teeth", "tongue")):
+            continue
+        z = max((o.matrix_world @ Vector(c)).z for c in o.bound_box)
+        if top is None or z > top:
+            best, top = o, z
+    return best
+
+
+def _derive_keys(ob, derive):
+    """add the profile's mixed shape keys (e.g. an F mouth made of ARKit keys) to one mesh"""
+    sk = ob.data.shape_keys
+    if sk is None:
+        return 0
+    kb = sk.key_blocks
+    n = len(ob.data.vertices)
+
+    def co(name):
+        a = np.empty(n * 3, np.float32)
+        kb[name].data.foreach_get("co", a)
+        return a
+
+    made, basis = 0, None
+    for target, mix in derive.items():
+        if target in kb or not all(s in kb for s in mix):
+            continue
+        if basis is None:
+            basis = co(sk.reference_key.name)
+        acc = basis.copy()
+        for s, w in mix.items():
+            acc += float(w) * (co(s) - basis)
+        k = ob.shape_key_add(name=target, from_mix=False)
+        k.data.foreach_set("co", acc)
+        k.slider_min, k.slider_max, k.value = 0.0, 2.0, 0.0
+        made += 1
+    if made:
+        ob.data.update()
+    return made
+
+
 def _resolve_meshes(prof, meshes, rename):
     """role -> mesh; `rename` maps a shape key name to the engine's (applied or not)"""
     canon = lambda ob: [rename.get(k, k) for k in _keys(ob)]
@@ -116,7 +175,14 @@ def _resolve_meshes(prof, meshes, rename):
         found["mouth"] = talkers.pop(0)
         taken.add(found["mouth"].name)
     for role in ("hat", "skin", "clothes", "eyes"):
+        if "@head" in (prof.get("meshes") or {}).get(role, []) and "head" in found:
+            found[role] = found["head"]           # one mesh is his face and his whole body
+            continue
         o = _find(role, prof, meshes, taken)
+        if o is None and role == "eyes":
+            o = _eyes_by_weights(meshes, taken)
+        if o is None and role == "hat" and prof.get("hat_fallback") == "top_head_only":
+            o = _hat_by_weights(meshes, taken)
         if o is not None:
             found[role] = o
             taken.add(o.name)
@@ -149,6 +215,9 @@ def analyse(profile="auto"):
         rep["errors"].append("no face mesh: none of his meshes has a 'jawOpen' shape key")
     else:
         keys = set(rename.get(k, k) for o in (found.get("head"), found.get("mouth")) if o for k in _keys(o))
+        derive = prof.get("derive_shape_keys") or {}
+        rep["derived_keys"] = sorted(t for t, mix in derive.items() if t not in keys and all(s in keys for s in mix))
+        keys |= set(rep["derived_keys"])
         rep["renamed_keys"] = sum(1 for o in found.values() for k in _keys(o) if k in rename)
         import bayc_sing
         rep["missing_face"] = [k for k in bayc_sing.FACE_KEYS if k not in keys and not k.startswith("Tongue_")]
@@ -192,6 +261,11 @@ def resolve(profile="auto", log=None):
                 if k.name in rename and rename[k.name] not in sk.key_blocks:
                     k.name = rename[k.name]
                     n_k += 1
+    n_d = 0
+    for o in _meshes(arm) if prof.get("derive_shape_keys") else []:
+        n_d += _derive_keys(o, prof["derive_shape_keys"])
+    if n_d:
+        log.append(f"mixed {n_d} face shapes the rig lacks from its own (" + ", ".join(prof["derive_shape_keys"]) + ")")
     found = _resolve_meshes(prof, _meshes(arm), {})
     bayc_sing.CFG.update({
         "armature": arm.name, "_profile": prof,
@@ -215,12 +289,14 @@ def report_lines(rep):
             lines.append(f"{role.capitalize()}: {rep[role] or '-'}")
     if rep.get("renamed_bones") or rep.get("renamed_keys"):
         lines.append(f"Will rename {rep['renamed_bones']} bones, {rep['renamed_keys']} shape keys (in the build's copy only)")
+    if rep.get("derived_keys"):
+        lines.append(f"Will mix {len(rep['derived_keys'])} face shapes it lacks from its own (in the build's copy only)")
     lines += ["ERROR: " + e for e in rep["errors"]] + ["Note: " + w for w in rep["warnings"]]
     lines.append("Ready to sing." if rep["ok"] else "Not ready: see the errors above.")
     return lines
 
 
-def ensure_lights(log):
+def ensure_lights(log, dz=0.0):
     """a scene without lights gets a soft three-light studio aimed at his chest (and a world)"""
     sc = bpy.context.scene
     if sc.world is None:
@@ -237,7 +313,7 @@ def ensure_lights(log):
     coll = bpy.data.collections.get("Lights") or bpy.data.collections.new("Lights")
     if coll.name not in sc.collection.children:
         sc.collection.children.link(coll)
-    aim = Vector((0.0, 0.0, 1.3))
+    aim = Vector((0.0, 0.0, 1.3 + dz))          # dz: his head height vs a BAYC ape's (m)
     for name, energy, loc in (("Key", 160.0, (0.95, -1.22, 3.1)), ("Rim", 130.0, (-0.37, 0.85, 2.73)),
                               ("Back", 60.0, (-1.1, 0.98, 1.41))):
         L = bpy.data.lights.new(name, 'SPOT')
@@ -246,9 +322,10 @@ def ensure_lights(log):
         L.spot_blend = 0.6
         L.shadow_soft_size = 0.35
         ob = bpy.data.objects.new(name, L)
-        ob.location = loc
+        p = Vector((loc[0], loc[1], loc[2] + dz))
+        ob.location = p
         ob.rotation_mode = 'QUATERNION'
-        ob.rotation_quaternion = (aim - Vector(loc)).to_track_quat('-Z', 'Y')
+        ob.rotation_quaternion = (aim - p).to_track_quat('-Z', 'Y')
         ob.rotation_mode = 'XYZ'
         coll.objects.link(ob)
     log.append("added a three-light studio (Key, Rim, Back)")

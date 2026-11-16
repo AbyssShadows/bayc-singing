@@ -44,6 +44,14 @@ XCFG = {
     "larynx_y": 161.6,            # larynx height (rig cm): high in the neck, as in apes
     "trachea_bottom_y": 148.5,
     "lung": {"x": 5.0, "y": 137.5, "z": -1.5, "rx": 3.3, "ry": 7.2, "rz": 3.9},
+    # where his neck is measured (rig cm): the heights scanned, the half-width of a slice, and the
+    # inner/outer radius of a clean neck slice (collars and the chin are skipped)
+    "neck_scan": [156.0, 168.0], "neck_halfwidth": 9.0, "neck_r": [3.0, 7.5],
+    "cz_clip_lo": 153.0,          # below this height the airway runs straight down
+    "esophagus_y": 153.0,         # where the esophagus leaves his neck on its way to the stomach
+    "esophagus_back_cm": [3.6, 2.6],   # how far behind the belly's mid-depth it runs down his chest
+    "gut_exit_drop": 5.0,         # the exit sits this far below his hip joints (rig cm)
+    "gut_clamp_cm": None,         # a number: keep every gut point that far inside his measured skin
     "bloom": 0.45,
     "orbit_deg": 40.0,            # camera azimuth towards his right side
     # songs with a fart part: the digestive system
@@ -213,13 +221,14 @@ class BodyFit:
         allc = np.concatenate([mesh_co(fur), mesh_co(head)]) if fur else mesh_co(head)
         ys, cz, rm = [], [], []
         self.neck_top = 165.0
-        for y in np.arange(156.0, 168.01, 0.5):
-            band = allc[(np.abs(allc[:, 1] - y) < 0.6) & (np.abs(allc[:, 0]) < 9.0)]
+        (y_lo, y_hi), (r_lo, r_hi) = XCFG["neck_scan"], XCFG["neck_r"]
+        for y in np.arange(y_lo, y_hi + 0.01, 0.5):
+            band = allc[(np.abs(allc[:, 1] - y) < 0.6) & (np.abs(allc[:, 0]) < XCFG["neck_halfwidth"])]
             if len(band) < 10:
                 continue
             c = 0.5 * (band[:, 2].min() + band[:, 2].max())
             r = np.hypot(band[:, 0], band[:, 2] - c)
-            if r.min() < 3.0 or r.max() > 7.5:       # collar / chin geometry: not a clean neck slice
+            if r.min() < r_lo or r.max() > r_hi:     # collar / chin geometry: not a clean neck slice
                 continue
             ys.append(y)
             cz.append(c)
@@ -249,9 +258,11 @@ class BodyFit:
         self.y_sp = bones["Spine"].head_local.y if "Spine" in bones else 119.3
         self.y_s1 = bones["Spine1"].head_local.y if "Spine1" in bones else 130.1
         self.belly = None
+        self._bc = None
         skin = [mesh_co(fur)] if fur is not None else [mesh_co(o) for o in (role_mesh("clothes"),) if o is not None]
         if skin:
             bc = np.concatenate(skin)
+            self._bc = bc
             fr, bk, hw = [], [], []
             for y in np.arange(self.y_leg, self.y_sp + 4.0, 3.0):
                 band = bc[(np.abs(bc[:, 1] - y) < 1.2) & (np.abs(bc[:, 0]) < 22.0)]
@@ -278,7 +289,7 @@ class BodyFit:
         yl, ys, y1 = self.y_leg, self.y_sp, self.y_s1
         yt = ys + 1.4                                        # the colon's two top corners
         larynx = XCFG["larynx_y"]
-        exit_ = (0.0, yl - 5.0, b["butt_z"] + 2.8)          # well under the skin, also when he bends
+        exit_ = (0.0, yl - XCFG["gut_exit_drop"], b["butt_z"] + 2.8)   # well under the skin, also when he bends
         colon = [(-xc, yl + 0.2, zm + 0.7), (-xc - 0.2, yl + 7.0, zm + 0.4), (-xc + 0.3, yt - 0.7, zm + 0.7),
                  (-xc + 2.6, yt + 0.7, zm + 2.1), (0.0, yt - 1.7, zm + 3.7), (xc - 2.6, yt + 0.9, zm + 2.1),
                  (xc - 0.2, yt - 0.3, zm + 0.7), (xc + 0.2, yl + 8.0, zm + 0.3), (xc - 0.6, yl + 1.8, zm - 0.5),
@@ -287,8 +298,9 @@ class BodyFit:
         stomach = [(1.0, y1 - 1.5, zm - 1.5), (3.6, y1 - 1.2, zm - 0.5), (5.6, y1 - 3.5, zm + 0.7),
                    (5.0, y1 - 5.7, zm + 1.7), (2.8, y1 - 6.7, zm + 2.1), (0.6, y1 - 6.4, zm + 1.9)]
         stomach_r = [0.7, 2.0, 2.6, 2.3, 1.5, 0.75]
-        esophagus = [(0.0, larynx - 1.6, self.cz(larynx - 1.6) - 1.7), (0.0, 153.0, self.cz(153.0) - 1.8),
-                     (0.2, y1 + 12.0, zm - 3.6), (0.5, y1 + 3.0, zm - 2.6), stomach[0]]
+        ye, eb = XCFG["esophagus_y"], XCFG["esophagus_back_cm"]
+        esophagus = [(0.0, larynx - 1.6, self.cz(larynx - 1.6) - 1.7), (0.0, ye, self.cz(ye) - 1.8),
+                     (0.2, y1 + 12.0, zm - eb[0]), (0.5, y1 + 3.0, zm - eb[1]), stomach[0]]
         small = [stomach[-1], (-2.4, y1 - 7.1, zm + 0.3), (-3.2, ys + 1.2, zm - 1.1), (-1.0, ys - 0.9, zm - 0.7)]
         rows = [ys - 2.6, ys - 4.8, ys - 7.0, ys - 9.2]
         for k, yr in enumerate(rows):
@@ -298,10 +310,43 @@ class BodyFit:
             if k + 1 < len(rows):
                 small.append(((xs + 0.6) * d, 0.5 * (yr + rows[k + 1]), z))
         small += [(-xs - 0.8, rows[-1] - 2.2, zm + 1.4), (-xc + 0.9, yl + 1.2, zm + 0.9)]
+        m = XCFG["gut_clamp_cm"]
+        if m is not None and self._bc is not None:
+            # a slim body: fit every point into his cross-section at its height (the colon swells
+            # by up to 1.45x as a bubble passes, so it gets that much room)
+            colon = self.clamp_inside(colon, [1.6 * r for r in colon_r], m)
+            exit_ = colon[-1]
+            stomach = self.clamp_inside(stomach, [1.1 * r for r in stomach_r], m)
+            small = self.clamp_inside(small, [0.8] * len(small), m)
+            esophagus = self.clamp_inside(esophagus, [0.6] * len(esophagus), m)
+            esophagus[-1], small[0] = stomach[0], stomach[-1]
         return dict(colon=colon, colon_r=colon_r, stomach=stomach, stomach_r=stomach_r, esophagus=esophagus, small=small)
 
+    def section(self, y):
+        """his skin at height y: midline front and back (z) and half-width at mid-depth (x)"""
+        band = self._bc[np.abs(self._bc[:, 1] - y) < 0.8]
+        core = band[np.abs(band[:, 0]) < 2.0]
+        if len(core) < 2:
+            return None
+        f, b = float(core[:, 2].max()), float(core[:, 2].min())
+        side = band[(np.abs(band[:, 2] - 0.5 * (f + b)) < 2.0) & (np.abs(band[:, 0]) < 22.0)]
+        return f, b, (float(np.abs(side[:, 0]).max()) if len(side) else 0.0)
+
+    def clamp_inside(self, pts, radii, m):
+        out = []
+        for (x, y, z), r in zip(pts, radii):
+            s = self.section(y)
+            if s is not None:
+                f, b, h = s
+                lo, hi = b + r + m, f - r - m
+                z = 0.5 * (f + b) if lo > hi else min(max(z, lo), hi)
+                lim = max(0.0, h - r - m)
+                x = min(max(x, -lim), lim)
+            out.append((x, y, z))
+        return out
+
     def cz(self, y):
-        return float(np.polyval(self.cz_fit, np.clip(y, 153.0, self.neck_top + 0.5)))
+        return float(np.polyval(self.cz_fit, np.clip(y, XCFG["cz_clip_lo"], self.neck_top + 0.5)))
 
     def rmin(self, y):
         return float(np.polyval(self.rm_fit, np.clip(y, self.neck_lo, self.neck_top)))
@@ -981,6 +1026,7 @@ def orbit_camera(scene, nF, fps, track_path, cfg, fz=None):
         dist = cfg["fart_dist"] - 0.25 * deep + 0.15 * wide
         az = np.radians(cfg["fart_orbit_deg"] + 30 * deep - 14 * wide)
         tz = 1.30 - 0.10 * deep + 0.04 * wide
+    tz = tz + (bayc_sing.CFG.get("_cam_dz") or 0.0)   # his head height vs a BAYC ape's
     act, slot, cb = _fresh_action("BAYC_Sing_Camera", "OBJECT", cam.name)
     for j, vals in enumerate((-dist * np.sin(az), -0.05 - dist * np.cos(az), tz + 0.06)):
         _curve(cb, "location", j, vals)
@@ -1274,9 +1320,13 @@ def inside_check(scene, names, count, log):
     """Is every point of the added anatomy enclosed by his skin, in motion? A point counts as
     inside when rays cast from it in (nearly) every direction hit his skin (the body and the head;
     his clothes do not count, they are outside it); the depth is the distance to the nearest skin."""
-    body = [o for o in (role_mesh("skin"), bpy.data.objects[bayc_sing.CFG["head_mesh"]]) if o]
-    if len(body) < 2:                                # no separate skin: the clothes are the surface
-        body = [o for o in (bpy.data.objects[bayc_sing.CFG["head_mesh"]], role_mesh("clothes")) if o]
+    skin, head = role_mesh("skin"), bpy.data.objects[bayc_sing.CFG["head_mesh"]]
+    if skin is not None and skin == head:            # one mesh is his face and his whole body
+        body = [head]
+    else:
+        body = [o for o in (skin, head) if o]
+        if len(body) < 2:                            # no separate skin: the clothes are the surface
+            body = [o for o in (head, role_mesh("clothes")) if o]
     anat = [bpy.data.objects[n] for n in names]
     off = [m for o in body + anat for m in o.modifiers if m.name in ("XR_wire", "XR_unsubdiv", "XR_tubes") and m.show_viewport]
     for m in off:

@@ -1,26 +1,49 @@
 {
   "id": "jnkyz",
-  "name": "Jnkyz",
-  "status": "draft: not tested on a Jnkyz model yet",
-  "about": "Assumes the same Advanced Skeleton body rig and face shape keys as the BAYC apes. Meshes are found by the keywords below, or by the generic rules (the face is the mesh with a jawOpen shape key). To finish this profile, open a Jnkyz .blend, press 'Check my character' in the panel, and fill in what it reports as missing.",
-  "match": {"mesh_name_contains": ["JNKYZ", "Jnkyz", "jnkyz", "JNKZ"], "bones": ["Hips", "Head", "LeftUpLeg", "RightUpLeg"]},
+  "name": "Jnkyz, Mixamo-style rig with an ARKit face",
+  "status": "tested on Wade",
+  "about": "The 3D Jnkyz (tested on the mascot, Wade, from Wade_ARKit.fbx). One mesh is the whole body and face (e.g. JNKYWhite_Body_GEO) with the 52 ARKit shape keys plus tongueOut; the mouth (teeth, gums, tongue) is its own mesh (e.g. LostAF_Mouth_GEO). The rig has Mixamo bone names without a prefix and rests in an A-pose. Import the FBX into Blender, save it as a .blend, and make it sing.",
+  "match": {"mesh_name_contains": ["JNKY", "Jnky", "jnky"], "bones": ["Hips", "Head", "LeftUpLeg", "RightUpLeg", "LeftEye", "RightEye"]},
   "bone_prefix": "",
-  "rename_bones": {},
+  "rename_bones": {"LeftEye": "L_Eye", "RightEye": "R_Eye"},
   "rename_shape_keys": {},
+  "derive_shape_keys": {
+    "fff_M": {"mouthRollLower": 1.6, "mouthUpperUpLeft": 0.3, "mouthUpperUpRight": 0.3},
+    "tth_M": {"tongueOut": 0.3, "mouthUpperUpLeft": 0.15, "mouthUpperUpRight": 0.15},
+    "rrr_M": {"mouthPucker": 0.35, "mouthFunnel": 0.3},
+    "sss_M": {"mouthStretchLeft": 0.35, "mouthStretchRight": 0.35, "mouthUpperUpLeft": 0.2, "mouthUpperUpRight": 0.2},
+    "ssh_M": {"mouthFunnel": 0.55, "mouthShrugUpper": 0.3, "mouthPucker": 0.15},
+    "happy_M": {"mouthSmileLeft": 0.6, "mouthSmileRight": 0.6, "cheekSquintLeft": 0.35, "cheekSquintRight": 0.35},
+    "surprise_M": {"browInnerUp": 0.7, "browOuterUpLeft": 0.6, "browOuterUpRight": 0.6, "eyeWideLeft": 0.5, "eyeWideRight": 0.5}
+  },
   "meshes": {
-    "head": ["_Head_", "Head"],
-    "mouth": ["_Mouth_", "Mouth", "Teeth"],
-    "hat": ["_Hat_", "Hat", "Cap"],
-    "skin": ["_Fur_", "_Body_", "Body", "Skin"],
-    "clothes": ["_Clothes_", "Clothes", "Shirt", "Hoodie"],
-    "eyes": ["_Eyes_", "Eyes"],
+    "head": ["_Body_GEO", "_Body_", "_Head_"],
+    "mouth": ["_Mouth_GEO", "_Mouth_", "Mouth"],
+    "hat": ["_Hat_", "Hat", "Beanie", "Cap", "Helmet", "Hood"],
+    "skin": ["@head"],
+    "clothes": ["Clothes_", "Tanktop", "Shirt", "Hoodie", "Jacket", "Tee"],
+    "eyes": ["_Eyes_", "Eyes", "Stylised"],
     "backdrop": ["Background", "Backdrop"]
   },
+  "hat_fallback": "top_head_only",
   "extra_bones": {
-    "Hat_Jiggle": {"head": [0.0, 191.5, 3.0], "tail": [0.0, 201.5, 3.0]},
-    "Ear_L": {"head": [10.4, 187.2, 2.0], "tail": [18.2, 187.7, 2.4]},
-    "Ear_R": {"head": [-10.4, 187.2, 2.0], "tail": [-18.2, 187.7, 2.4]}
+    "Hat_Jiggle": {"head": [0.0, 167.0, 0.5], "tail": [-2.5, 171.0, -9.0]}
   },
-  "ear_weights": {"x": [9.8, 12.6], "y_in": [177.5, 180.5], "y_out": [193.5, 195.5]},
-  "xray": {}
+  "hat_weights": {"near": 1.6, "far": 4.5},
+  "jiggle": {"Hat_Jiggle": [3.0, 0.2, 0.35, 22, 0.8]},
+  "base_pose": {"LeftArm": [0, 0, -30], "RightArm": [0, 0, 30]},
+  "tongue_sculpt": {"tip_rise_cm": 3.2, "pull_back_cm": 1.0},
+  "cfg": {"jaw_gain": 1.35, "hat_hop_beat": 0.0, "hat_hop_fart": 0.7, "bend_deg": 45.0},
+  "xray": {
+    "larynx_y": 147.0,
+    "trachea_bottom_y": 139.5,
+    "lung": {"x": 4.4, "y": 132.0, "z": -4.6, "rx": 2.9, "ry": 7.0, "rz": 4.3},
+    "neck_scan": [144.5, 150.0],
+    "neck_r": [3.0, 10.0],
+    "cz_clip_lo": 144.5,
+    "esophagus_y": 141.0,
+    "esophagus_back_cm": [1.5, 1.2],
+    "gut_exit_drop": 3.0,
+    "gut_clamp_cm": 1.6
+  }
 }

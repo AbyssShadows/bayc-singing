@@ -3,7 +3,7 @@
   blender -b character.blend --python <add-on>/engine/cli.py -- --song SONG [options]
 
   --song      a song file (.json), a MIDI melody (.mid/.midi/.kar), or the name of an included
-              song (bored_ape_boat, jungle_groove, fart_cancan, jingle_bells)
+              song (bored_ape_boat, jungle_groove, fart_cancan, jingle_bells, thunder_jeans)
   --lyrics    lyrics for a MIDI melody (text, or a .txt file); without any he scats
   --midi-track N   which MIDI track holds the melody (default: found automatically)
   --voice     male | female | child                        (default male)

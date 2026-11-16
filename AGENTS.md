@@ -17,8 +17,10 @@ sh tools/sing.sh "<character.blend>" --song <song> --check
 sh tools/sing.sh "<character.blend>" --song <song> [--mode sing|both|farts] [--look xray|textured] [--voice ...] [--render] [--engine eevee|cycles]
 ```
 
+- `<character.blend>`: a saved .blend (BAYC ape, Jnkyz, ...). For an FBX, import it into an empty
+  Blender scene and save it as a .blend first.
 - `<song>`: an included name (`bored_ape_boat`, `jungle_groove`, `fart_cancan`, `jingle_bells`,
-  `fart_styles_demo`, `template_do_re_mi`), a `.json` song file, or a `.mid`/`.midi`/`.kar` file
+  `thunder_jeans`, `fart_styles_demo`, `template_do_re_mi`), a `.json` song file, or a `.mid`/`.midi`/`.kar` file
   (add `-Lyrics "words"` or `--lyrics "words"`; without lyrics he scats).
 - Modes: `sing`, `both` (sing + farts; the song's own fart part or an automatic one), `farts`
   (the farts play the tune, no singing).

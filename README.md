@@ -24,8 +24,8 @@ insides on show, plus an MP4 with sound.
   green gas clouds when he farts. Render it with EEVEE or Cycles.
 - **Your own music.** Use the included songs, write one in a few lines of text, import a MIDI
   melody (karaoke `.kar` files bring their lyrics), or ask an AI agent to write one.
-- **Other characters.** Works with any ape built on the BAYC Advanced Skeleton rig. Jnkyz support
-  is being prepared, and Mixamo-rigged characters are an experimental option.
+- **Jnkyz too.** The 3D Jnkyz (Mixamo-style rig, ARKit face) work out of the box: import the FBX,
+  save, press the button. Other Mixamo-rigged characters are an experimental option.
 
 > ### Credits
 > The singing voice is **[chimera-vocal-synth](https://github.com/jamesondh/chimera-vocal-synth)
@@ -166,6 +166,7 @@ See [section 9](#9-using-an-ai-agent-cheap-on-tokens).
 | `jungle_groove` | Original funk-pop, 118 bpm |
 | `fart_cancan` | The Can-Can (Offenbach, 1858, public domain) with new lyrics and its own fart part with a bend-over |
 | `jingle_bells` | Public-domain classic (1857) |
+| `thunder_jeans` | Original, starring the Jnkyz mascot Wade: beans, a beanie, ripped jeans and a fart answering every line, 132 bpm |
 | `fart_styles_demo` | Every fart style in turn (farts only) |
 | `template_do_re_mi` | The template to copy |
 
@@ -219,8 +220,16 @@ meshes and shape keys do which job. It can also rename them, and those renames h
 the build's copy.
 
 - **BAYC** (Advanced Skeleton rig): tested.
-- **Jnkyz:** a draft profile is ready, assuming the same rig and face shapes. If **Check my
-  character** reports something missing on your Jnkyz, open an issue with what it says.
+- **Jnkyz** (Mixamo-style bones, one body-and-face mesh with the 52 ARKit shape keys, a separate
+  mouth with teeth and tongue): tested on the mascot, Wade. In Blender, **File → Import → FBX**
+  your Jnkyz, **File → Save As** a `.blend`, then use the panel as usual. The build:
+  - relaxes the A-pose arms, and mixes the mouth shapes ARKit lacks (F, TH, R, S, SH) from the
+    ones it has;
+  - sculpts tongue moves on the Jnkyz's own tongue;
+  - lets the slouchy part of a beanie flop while the rim stays on;
+  - fits the X-ray organs into the slimmer Jnkyz body.
+  A scene without lights gets a studio; add your own backdrop mesh named `Background` if you like
+  (it turns with the camera in fart songs).
 - **Mixamo** bodies with ARKit / Oculus viseme faces: experimental. The build strips the
   `mixamorig:` prefix and maps the visemes. Hat and ear jiggle bones are off, because their
   placement depends on the character.
